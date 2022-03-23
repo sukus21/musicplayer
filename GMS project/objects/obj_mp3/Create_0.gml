@@ -1,7 +1,7 @@
 //Copy executable to appdata
-file_copy("main.exe", "convert.exe");
+file_copy(working_directory + "main", working_directory + "convert");
 
-fullpath = "C:/OneDrive/Musik"
+fullpath = "/mnt/127C43E17C43BE6B/OneDrive/Musik"
 
 files = ds_list_create();
 
@@ -22,4 +22,8 @@ mouse_song = noone;
 sound_playing = noone;
 sound_buffer = noone;
 
-progpath = filename_path("convert.exe") + "convert.exe";
+show_debug_message(filename_path("main"));
+
+execute_shell("touch /home/sukus/.config/MP3player/weewee", true);
+execute_shell("echo balls", false)
+execute_shell("/home/sukus/.config/MP3player/convert", false);
