@@ -2,11 +2,14 @@
   "resources": [
     {"id":{"name":"scr_huffman","path":"scripts/scr_huffman/scr_huffman.yy",},"order":11,},
     {"id":{"name":"scr_consts","path":"scripts/scr_consts/scr_consts.yy",},"order":3,},
+    {"id":{"name":"fnt_determination","path":"fonts/fnt_determination/fnt_determination.yy",},"order":14,},
     {"id":{"name":"scr_append","path":"scripts/scr_append/scr_append.yy",},"order":2,},
     {"id":{"name":"scr_bits","path":"scripts/scr_bits/scr_bits.yy",},"order":9,},
     {"id":{"name":"scr_maindata","path":"scripts/scr_maindata/scr_maindata.yy",},"order":10,},
+    {"id":{"name":"obj_example","path":"objects/obj_example/obj_example.yy",},"order":0,},
     {"id":{"name":"scr_frame","path":"scripts/scr_frame/scr_frame.yy",},"order":6,},
     {"id":{"name":"obj_mp3","path":"objects/obj_mp3/obj_mp3.yy",},"order":13,},
+    {"id":{"name":"ExecuteShell","path":"extensions/ExecuteShell/ExecuteShell.yy",},"order":0,},
     {"id":{"name":"scr_frameheader","path":"scripts/scr_frameheader/scr_frameheader.yy",},"order":7,},
     {"id":{"name":"scr_decoder","path":"scripts/scr_decoder/scr_decoder.yy",},"order":5,},
     {"id":{"name":"scr_sideinfo","path":"scripts/scr_sideinfo/scr_sideinfo.yy",},"order":8,},
@@ -35,7 +38,11 @@
   "RoomOrderNodes": [
     {"roomId":{"name":"Room1","path":"rooms/Room1/Room1.yy",},},
   ],
-  "Folders": [],
+  "Folders": [
+    {"folderPath":"folders/Extensions.yy","order":15,"resourceVersion":"1.0","name":"Extensions","tags":[],"resourceType":"GMFolder",},
+    {"folderPath":"folders/Objects.yy","order":16,"resourceVersion":"1.0","name":"Objects","tags":[],"resourceType":"GMFolder",},
+    {"folderPath":"folders/Objects/ExecuteShell.yy","order":1,"resourceVersion":"1.0","name":"ExecuteShell","tags":[],"resourceType":"GMFolder",},
+  ],
   "AudioGroups": [
     {"targets":-1,"resourceVersion":"1.3","name":"audiogroup_default","resourceType":"GMAudioGroup",},
   ],
@@ -44,6 +51,11 @@
   ],
   "IncludedFiles": [
     {"CopyToMask":-1,"filePath":"datafiles","resourceVersion":"1.0","name":"test.mp3","resourceType":"GMIncludedFile",},
+    {"CopyToMask":-1,"filePath":"datafiles/.vscode","resourceVersion":"1.0","name":"launch.json","resourceType":"GMIncludedFile",},
+    {"CopyToMask":-1,"filePath":"datafiles","resourceVersion":"1.0","name":"go.sum","resourceType":"GMIncludedFile",},
+    {"CopyToMask":-1,"filePath":"datafiles","resourceVersion":"1.0","name":"go.mod","resourceType":"GMIncludedFile",},
+    {"CopyToMask":-1,"filePath":"datafiles","resourceVersion":"1.0","name":"main.exe","resourceType":"GMIncludedFile",},
+    {"CopyToMask":-1,"filePath":"datafiles","resourceVersion":"1.0","name":"main.go","resourceType":"GMIncludedFile",},
   ],
   "MetaData": {
     "IDEVersion": "2022.2.0.614",

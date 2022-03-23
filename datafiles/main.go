@@ -59,6 +59,7 @@ func convert(fname string) error {
 
 	//Write thing
 	binary.Write(o, binary.LittleEndian, d.SampleRate())
+	binary.Write(o, binary.LittleEndian, d.Length())
 	o.Close()
 
 	//Return nil, because no errors happened :)
@@ -66,6 +67,8 @@ func convert(fname string) error {
 }
 
 func main() {
+
+	fmt.Println("ahh scary!")
 
 	//Get file name
 	if len(os.Args) != 2 {
