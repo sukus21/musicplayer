@@ -1,0 +1,29 @@
+enum VERSION {
+	V2_5 = 0,
+	RESERVED = 1,
+	V2 = 2,
+	V1 = 3
+}
+
+enum MPEGLAYER {
+	RESERVED = 0,
+	L3 = 1,
+	L2 = 2,
+	L1 = 3
+}
+
+enum CHANNELMODE {
+	STEREO = 0,
+	JOINTSTEREO = 1,
+	DUALCHANNEL = 2,
+	SINGLECHANNEL = 3
+}
+
+enum SFBINDEX {
+	LONG = 0,
+	SHORT = 1
+}
+
+#macro SAMPLINGFREQUENCY_RESERVED 3
+#macro GRANULES_MPEG1 2
+#macro SAMPLES_PER_GRANULE 576
