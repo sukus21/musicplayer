@@ -1,70 +1,50 @@
 package main
 
 import (
-	"encoding/binary"
-	"io"
-	"os"
+	"fmt"
 
-	"github.com/hajimehoshi/go-mp3"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 )
-
-func convert(fname string) error {
-	f, err := os.Open(fname)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	d, err := mp3.NewDecoder(f)
-	if err != nil {
-		return err
-	}
-
-	//Open output file
-	o, err := os.Create("out.raw")
-	if err != nil {
-		return err
-	}
-
-	//Write main file
-	if _, err := io.Copy(o, d); err != nil {
-		return err
-	}
-	o.Close()
-
-	//Write file with samplerate
-	o, err = os.Create("smplr")
-	if err != nil {
-		return err
-	}
-
-	//Write thing
-	binary.Write(o, binary.LittleEndian, d.SampleRate())
-	binary.Write(o, binary.LittleEndian, d.Length())
-	o.Close()
-
-	//Return nil, because no errors happened :)
-	return nil
-}
 
 func main() {
 
-	//fmt.Println("ahh scary!")
+	//Create app and window
+	app := app.New()
+	window := app.NewWindow("amogus")
 
-	//Get file name
-	//if len(os.Args) != 2 {
-	//	close(errors.New(fmt.Sprintf("Expected 2 arguments, got %d.", len(os.Args))))
-	//}
+	content := container.New(layout.NewVBoxLayout())
+	content.Add(addSong("song 1", 0))
+	content.Add(addSong("song 2", 1))
+	content.Add(addSong("song 3", 2))
+	content.Add(addSong("song 1", 3))
+	content.Add(addSong("song 2", 4))
+	content.Add(addSong("song 3", 5))
+	content.Add(addSong("song 1", 6))
+	content.Add(addSong("song 2", 7))
+	content.Add(addSong("song 3", 8))
 
-	err := convert("test.mp3")
-	if err != nil {
-		close(err)
-	}
+	window.SetContent(content)
+	window.Resize(fyne.NewSize(640, 480))
+	window.ShowAndRun()
 }
 
-func close(err error) {
-	f, _ := os.Create("error")
-	f.WriteString(err.Error())
-	f.Close()
-	os.Exit(1)
+func addSong(name string, num int) *fyne.Container {
+	content := container.New(layout.NewHBoxLayout())
+
+	content.Add(NewPlayButton(">", num, playButton))
+	content.Add(widget.NewButton("<", PlayButtonBoring))
+	content.Add(widget.NewLabel(name))
+	return content
+}
+
+func PlayButtonBoring() {
+	fmt.Println("play button boring")
+}
+
+func playButton(b *PlayButton) {
+	fmt.Println("play button", b.songnum)
 }
