@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -13,120 +15,114 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var songlist []*song = make([]*song, 0, 1024)
+var allsongs []*song = make([]*song, 0, 1024)
+var songlist []*song
 
 func main() {
 
+	path := "C:/OneDrive/Musik"
+
 	//Create app, window and layout
 	app := app.New()
-	window := app.NewWindow("amogus")
-	content := widget.NewList(
+	window := app.NewWindow("really bad MP3 player")
+	contentRight := widget.NewList(
+
+		//Get length of current song list
 		func() int {
 			return len(songlist)
 		},
+
+		//Function for creating a new song element
 		func() fyne.CanvasObject {
-			return CreateSongContent()
+			content := container.New(layout.NewHBoxLayout())
+			content.Add(widget.NewButtonWithIcon("", theme.MediaPlayIcon(), nil))
+			content.Add(widget.NewLabel(""))
+			return content
 		},
+
+		//Function for updating song element
 		func(i widget.ListItemID, o fyne.CanvasObject) {
-			songlist[i].content = o
+			songlist[i].SetContent(o.(*fyne.Container))
 		},
 	)
-	scroll := container.NewVScroll(content)
 
-	scroll.OnScrolled = func(p fyne.Position) {
-		for _, s := range songlist {
-			if s.content.Position().Y < scroll.Offset.Y || s.content.Position().Y > scroll.Offset.Y+480 {
-				s.content.Hide()
-				s.filler.Show()
-			} else {
-				s.content.Show()
-				s.filler.Hide()
-			}
-		}
+	//Create sidemenu
+	searchbar := widget.NewEntry()
+	searchbar.SetPlaceHolder("Search..")
+	searchbar.OnSubmitted = func(s string) {
+		songlist = getFilesSearch(strings.ToLower(s))
 	}
+	searchButton := widget.NewButtonWithIcon("", theme.SearchIcon(), func() {
+		searchbar.OnSubmitted(searchbar.Text)
+	})
+	sidemenu := container.NewVBox(
+		container.NewBorder(
+			nil, nil, nil, searchButton,
+			searchbar,
+		),
+	)
+
+	contentMain := container.NewHSplit(sidemenu, contentRight)
 
 	//Get all songs
-	songs, err := getFiles("/mnt/127C43E17C43BE6B/OneDrive/Musik")
+	songs, err := getFiles(path)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
 
-	//Add songs to vbox
-	for i, f := range songs {
-		s := addSong(f.Name(), "")
-		songlist = append(songlist, s)
-		s.content.Hide()
-		content.Add(s.content)
-		s.number = i
-
-		if i&7 == 0 {
-			content.Add(widget.NewLabel("filler"))
-		}
+	//Add songs to allsongs array
+	for _, f := range songs {
+		s := NewSong(f.Name(), path+"/"+f.Name())
+		allsongs = append(allsongs, s)
 	}
 
-	window.SetContent(scroll)
-	content.Resize(fyne.NewSize(640, 480))
+	//Um
+	songlist = allsongs
+
+	window.SetContent(contentMain)
 	window.Resize(fyne.NewSize(640, 480))
 	window.ShowAndRun()
 }
 
-func addSong(name string, path string) *song {
-
-	//Create song struct
-	s := NewSong(name, name)
-	s.CreateContent()
-	return s
-}
-
 func NewSong(name string, path string) *song {
 	s := song{
-		name: name,
-		path: path,
+		name:       name,
+		path:       path,
+		nameSearch: strings.ToLower(name),
 	}
 
 	return &s
 }
 
-func (s *song) CreateContent() *fyne.Container {
-	content := container.New(layout.NewHBoxLayout())
-	s.content = content
+func (s *song) SetContent(content *fyne.Container) {
 
-	//Add play button
-	content.Add(widget.NewButtonWithIcon("", theme.MediaPlayIcon(), func() {
+	//Set play button function
+	content.Objects[0].(*widget.Button).OnTapped = func() {
 		err := s.Play()
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-	}))
+	}
 
-	//Add name label
-	content.Add(widget.NewLabel(s.name))
-
-	//Create filler object
-	spacer := container.New(layout.NewHBoxLayout(), layout.NewSpacer())
-	spacer.Hide()
-	s.filler = spacer
+	//Set label name
+	content.Objects[1].(*widget.Label).Text = s.name
+	content.Refresh()
 
 	//Return
-	return content
-}
-
-func CreateSongContent() *fyne.Container {
-	s := song{}
-	return s.CreateContent()
+	s.content = content
 }
 
 func (s *song) Play() error {
-	fmt.Printf("Playing song: %s", s.name)
+	fmt.Printf("Playing song: %s\n", s.name)
 	return nil
 }
 
 type song struct {
-	name    string
-	path    string
-	number  int
-	content *fyne.Container
-	filler  *fyne.Container
+	name       string
+	path       string
+	nameSearch string
+	content    *fyne.Container
 }
 
 //Get files from folder in alphabethical order
@@ -138,56 +134,25 @@ func getFiles(dir string) ([]fs.FileInfo, error) {
 		return nil, err
 	}
 
-	//Sorting map
-	sorting := make(map[int]string)
-	getfileid := make(map[string]fs.FileInfo)
-	count := 0
-	for i := 0; i < len(files); i++ {
-		if !files[i].IsDir() {
-			sorting[count] = files[i].Name()
-			getfileid[files[i].Name()] = files[i]
-			count++
+	out := make([]fs.FileInfo, 0, len(files))
+	for _, f := range files {
+		if !f.IsDir() {
+			out = append(out, f)
 		}
-	}
-
-	//Do the work
-	for i := 0; i < len(sorting); i++ {
-		a := sorting[i]
-
-		for j := i + 1; j < len(sorting); j++ {
-			b := sorting[i]
-
-			//Check alphabetical order
-			higher := false
-			for k := 0; k < min(len(a), len(b)); k++ {
-				if a[k] > b[k] {
-					higher = true
-					break
-				}
-			}
-
-			//Swap entries around maybe
-			if higher {
-				sorting[i] = b
-				sorting[j] = a
-			}
-		}
-	}
-
-	//Convert to slice
-	output := make([]fs.FileInfo, len(sorting))
-	for i := 0; i < len(sorting); i++ {
-		output[i] = getfileid[sorting[i]]
 	}
 
 	//Return
-	return output, nil
+	return out, nil
 }
 
-//REALLY easy min function
-func min(a int, b int) int {
-	if a < b {
-		return a
+func getFilesSearch(s string) []*song {
+	out := make([]*song, 0, len(allsongs))
+
+	for _, f := range allsongs {
+		if strings.Contains(f.nameSearch, s) {
+			out = append(out, f)
+		}
 	}
-	return b
+
+	return out
 }
