@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"musicplayer/player"
 	"os"
 	"strings"
 
@@ -18,9 +19,11 @@ import (
 var allsongs []*song = make([]*song, 0, 1024)
 var songlist []*song
 
+var Repeat bool = true
+
 func main() {
 
-	path := "C:/OneDrive/Musik"
+	path := "/mnt/127C43E17C43BE6B/OneDrive/Musik"
 
 	//Create app, window and layout
 	app := app.New()
@@ -114,6 +117,10 @@ func (s *song) SetContent(content *fyne.Container) {
 }
 
 func (s *song) Play() error {
+
+	go player.Run(s.path)
+
+	//Song is playing'
 	fmt.Printf("Playing song: %s\n", s.name)
 	return nil
 }
