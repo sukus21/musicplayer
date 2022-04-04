@@ -1,52 +1,49 @@
 package player
 
 import (
-	"io"
-	"os"
+	"bytes"
 
-	"github.com/hajimehoshi/go-mp3"
-	"github.com/hajimehoshi/oto"
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	raudio "github.com/hajimehoshi/ebiten/v2/examples/resources/audio"
 )
 
-var Context *oto.Context = nil
-var Player *oto.Player = nil
+var context *audio.Context = nil
+var current *audio.Player = nil
 
 func Run(path string) error {
 
-	if Context != nil {
-		Context.Close()
-		Context = nil
+	_ = path
+
+	//Create context if it doesn't exist
+	if context == nil {
+		context = audio.NewContext(48000)
+	}
+
+	//Stop currently playing song
+	if current != nil {
+		current.Close()
 	}
 
 	//Open file
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+	//f, err := os.ReadFile(path)
+	f := raudio.Ragtime_mp3
+	//if err != nil {
+	//	return err
+	//}
 
 	//Create decoder
-	d, err := mp3.NewDecoder(f)
+	s := bytes.NewReader(f)
+	d, err := mp3.DecodeWithSampleRate(context.SampleRate(), s)
 	if err != nil {
 		return err
 	}
-
-	if Context == nil {
-		Context, err = oto.NewContext(d.SampleRate(), 2, 2, 8192)
-		if err != nil {
-			return nil
-		}
-	}
-
-	Player = Context.NewPlayer()
-	defer Player.Close()
-
-	if _, err := io.Copy(Player, d); err != nil {
+	//fmt.Println(d.SampleRate())
+	current, err = context.NewPlayer(d)
+	if err != nil {
 		return err
 	}
+	current.Play()
 
 	return nil
-}
-
-type repeatPlayer struct {
 }
