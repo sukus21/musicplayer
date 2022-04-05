@@ -18,8 +18,8 @@ import (
 
 func main() {
 
-	//path := "/mnt/127C43E17C43BE6B/OneDrive/Musik"
-	path := "C:/OneDrive/Musik"
+	path := "/mnt/127C43E17C43BE6B/OneDrive/Musik"
+	//path := "C:/OneDrive/Musik"
 
 	//Create app, window and layout
 	app := app.New()
