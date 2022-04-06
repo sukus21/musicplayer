@@ -18,8 +18,8 @@ import (
 
 func main() {
 
-	path := "/mnt/127C43E17C43BE6B/OneDrive/Musik"
-	//path := "C:/OneDrive/Musik"
+	//path := "/mnt/127C43E17C43BE6B/OneDrive/Musik"
+	path := "C:/OneDrive/Musik"
 
 	//Create app, window and layout
 	app := app.New()
@@ -35,6 +35,7 @@ func main() {
 			if player.Volume < 2.0 {
 				player.Volume += 0.1
 			}
+			fmt.Println("Volume", player.Volume)
 		}),
 	)
 
@@ -44,7 +45,21 @@ func main() {
 			if player.Volume > 0.0 {
 				player.Volume -= 0.1
 			}
+			fmt.Println("Volume", player.Volume)
 		}),
+	)
+
+	//Repeat
+	bottombar.Add(
+		widget.NewButtonWithIcon("", theme.MediaReplayIcon(), func() {
+			player.Looping = !player.Looping
+			fmt.Println("Looping", player.Looping)
+		}),
+	)
+
+	//Shuffle
+	bottombar.Add(
+		widget.NewButtonWithIcon("", theme.ContentCutIcon(), songs.Shuffle),
 	)
 
 	//Play/pause
@@ -89,6 +104,8 @@ func main() {
 		songs.Allsongs = append(songs.Allsongs, s)
 	}
 
+	songs.Songlist = songs.Allsongs
+	songs.UpdateSongOrder()
 	songs.SongContainer.Refresh()
 	go keylogger.ListenInput()
 

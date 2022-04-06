@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"math/rand"
 	"musicplayer/player"
 	"strings"
 
@@ -18,10 +19,10 @@ var ButtonPlayPause *widget.Button
 
 var Allsongs []*song = make([]*song, 0, 1024)
 var Songlist []*song = nil
+var Playlist []*song = nil
 var CurrentSong int = -1
 var SongContainer *widget.List
-
-var Repeat bool = true
+var shuffle bool = false
 
 type song struct {
 	name       string
@@ -29,6 +30,15 @@ type song struct {
 	nameSearch string
 	content    *fyne.Container
 	number     int
+}
+
+func init() {
+	go func() {
+		for {
+			<-player.SongEnded
+			NextSong()
+		}
+	}()
 }
 
 func NewSong(name string, path string) *song {
@@ -103,21 +113,21 @@ func GetFilesSearch(s string) []*song {
 
 func NextSong() {
 	CurrentSong++
-	if CurrentSong < 0 || CurrentSong >= len(Songlist) {
+	if CurrentSong < 0 || CurrentSong >= len(Playlist) {
 		CurrentSong = 0
 	}
 
-	s := Songlist[CurrentSong]
+	s := Playlist[CurrentSong]
 	s.Play()
 }
 
 func PreviousSong() {
 	CurrentSong--
 	if CurrentSong < 0 {
-		CurrentSong = len(Songlist) - 1
+		CurrentSong = len(Playlist) - 1
 	}
 
-	s := Songlist[CurrentSong]
+	s := Playlist[CurrentSong]
 	s.Play()
 }
 
@@ -140,7 +150,6 @@ func InitializeList() {
 		//Function for updating song element
 		func(i widget.ListItemID, o fyne.CanvasObject) {
 			Songlist[i].SetContent(o.(*fyne.Container))
-			Songlist[i].number = i
 		},
 	)
 }
@@ -153,4 +162,30 @@ func PlayPauseSong() {
 	}
 	ButtonPlayPause.Refresh()
 	player.Paused = !player.Paused
+}
+
+func Shuffle() {
+	shuffle = !shuffle
+	fmt.Println("Shuffle", shuffle)
+	UpdateSongOrder()
+}
+
+func UpdateSongOrder() {
+
+	Playlist = make([]*song, len(Songlist))
+	copy(Playlist, Songlist)
+
+	//The
+	if shuffle {
+		for i, s := range Playlist {
+			j := rand.Int() % len(Playlist)
+			Playlist[i] = Playlist[j]
+			Playlist[j] = s
+		}
+	}
+
+	//Update song number
+	for i, s := range Playlist {
+		s.number = i
+	}
 }

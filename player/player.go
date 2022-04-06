@@ -3,6 +3,7 @@ package player
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 
@@ -10,43 +11,89 @@ import (
 	"github.com/hajimehoshi/oto"
 )
 
+var plswait bool = false
 var context *oto.Context = nil
 var current *oto.Player = nil
 var Volume float64 = 0.1
 var Paused bool = false
+var Looping bool = false
+var stopplaying chan struct{} = nil
+var SongEnded chan struct{} = make(chan struct{})
 
 func Run(path string) error {
+
+	if plswait {
+		fmt.Println("PLEASE wait :)")
+		return nil
+	}
+	plswait = true
 
 	//Open file
 	f, err := os.ReadFile(path)
 	if err != nil {
+		plswait = false
 		return err
 	}
 
 	//Create decoder
 	d, err := mp3.NewDecoder(bytes.NewReader(f))
 	if err != nil {
+		plswait = false
 		return err
 	}
 
-	//Close existing context
-	if context != nil {
-		context.Close()
-		context = nil
+	if stopplaying != nil {
+		stopplaying <- struct{}{}
+		<-stopplaying
+	} else {
+		stopplaying = make(chan struct{})
 	}
 
 	//Create context and player
 	context, err = oto.NewContext(d.SampleRate(), 2, 2, 16384)
 	if err != nil {
+		plswait = false
 		return err
 	}
 	current = context.NewPlayer()
 
 	//Play music
 	go func() {
-		io.Copy(current, myReader{d})
+		for {
+			_, err := io.Copy(current, myReader{d})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			if plswait {
+
+				//Song was closed by force
+				fmt.Println("Song was stopped prematurely")
+				current.Close()
+				context.Close()
+				context = nil
+				stopplaying <- struct{}{}
+
+			} else {
+
+				//Song just ended
+				if !Looping {
+					current.Close()
+					context.Close()
+					context = nil
+					stopplaying = nil
+					SongEnded <- struct{}{}
+					return
+				} else {
+					fmt.Println("Looping song")
+					d.Seek(0, io.SeekStart)
+				}
+			}
+		}
 	}()
 
+	plswait = false
 	return nil
 }
 
@@ -55,6 +102,12 @@ type myReader struct {
 }
 
 func (d myReader) Read(buf []byte) (int, error) {
+
+	select {
+	case <-stopplaying: //Stop playing song
+		return 0, io.EOF
+	default:
+	}
 
 	if Paused {
 		for i := range buf {

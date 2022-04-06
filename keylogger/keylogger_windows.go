@@ -19,6 +19,8 @@ func ListenInput() {
 			songs.NextSong()
 		case 177:
 			songs.PreviousSong()
+		case 179:
+			songs.PlayPauseSong()
 		}
 
 		//Sleepies
